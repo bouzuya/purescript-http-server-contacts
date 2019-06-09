@@ -27,8 +27,7 @@ execute store { method, pathname, body } = do
   case method, path of
     Method.GET, ["contacts"] -> do
       contacts <- Store.get store
-      ResponseHelper.json
-        (String.joinWith "\n" (map SimpleJSON.writeJSON contacts))
+      ResponseHelper.json (SimpleJSON.writeJSON contacts)
     Method.POST, ["contacts"] -> do
       case (SimpleJSON.readJSON_ body :: _ Contact) of
         Maybe.Nothing ->
@@ -39,8 +38,7 @@ execute store { method, pathname, body } = do
           contacts <- Store.get store
           let contacts' = Array.insert contact contacts
           _ <- Store.put contacts' store
-          ResponseHelper.json
-            (String.joinWith "\n" (map SimpleJSON.writeJSON contacts))
+          ResponseHelper.json (SimpleJSON.writeJSON contacts)
     Method.GET, [] ->
       -- healthcheck
       ResponseHelper.json (SimpleJSON.writeJSON { message: "OK" })
