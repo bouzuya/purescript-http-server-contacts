@@ -6,24 +6,19 @@ import Bouzuya.HTTP.Method as Method
 import Bouzuya.HTTP.Request (Request)
 import Bouzuya.HTTP.Response (Response)
 import Bouzuya.HTTP.Server as Server
-import Bouzuya.HTTP.StatusCode (StatusCode)
 import Bouzuya.HTTP.StatusCode as StatusCode
 import Control.Bind (bindFlipped)
 import Data.Array as Array
-import Data.ArrayBuffer.Typed as TypedArray
-import Data.ArrayBuffer.Types (Uint8Array)
 import Data.Int as Int
 import Data.Maybe as Maybe
 import Data.String as String
-import Data.Tuple as Tuple
 import Effect (Effect)
 import Effect.Aff (Aff)
 import Effect.Aff as Aff
 import Effect.Class as Class
 import Effect.Console as Console
-import Node.Buffer as Buffer
-import Node.Encoding as Encoding
 import Node.Process as Process
+import ResponseHelper as ResponseHelper
 import Simple.JSON as SimpleJSON
 import Store (Store)
 import Store as Store
@@ -36,24 +31,6 @@ type Contact =
 
 type AppStore = Store (Array Contact)
 
-html :: String -> Aff Response
-html = html' StatusCode.status200
-
-html' :: StatusCode -> String -> Aff Response
-html' status text = do
-  body <- Class.liftEffect (stringToUint8Array text)
-  pure
-    { body
-    , headers: [ Tuple.Tuple "Content-Type" "text/html" ]
-    , status
-    }
-
-stringToUint8Array :: String -> Effect Uint8Array
-stringToUint8Array s = do
-  b <- Buffer.fromString s Encoding.UTF8
-  ab <- Buffer.toArrayBuffer b
-  TypedArray.whole ab
-
 app :: AppStore -> Request -> Aff Response
 app store { method, pathname } = do
   let
@@ -64,11 +41,15 @@ app store { method, pathname } = do
   case method, path of
     Method.GET, ["contacts"] -> do
       contacts <- Store.get store
-      html (String.joinWith "\n" (map SimpleJSON.writeJSON contacts))
+      ResponseHelper.json
+        (String.joinWith "\n" (map SimpleJSON.writeJSON contacts))
     Method.GET, [] ->
-      html (show method <> " " <> pathname)
+      -- healthcheck
+      ResponseHelper.json (SimpleJSON.writeJSON { message: "OK" })
     _, _ ->
-      html' StatusCode.status404 "Not Found"
+      ResponseHelper.json'
+        StatusCode.status404
+        (SimpleJSON.writeJSON { message: "Not Found" })
 
 readPort :: Int -> Effect Int
 readPort defaultPort =
