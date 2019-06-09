@@ -9,6 +9,7 @@ You can edit this file as you like.
     , "bouzuya-http-server"
     , "node-process"
     , "psci-support"
+    , "simple-json"
     , "test-unit"
     ]
 , packages =
