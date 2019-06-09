@@ -1,0 +1,29 @@
+{
+  "name": "purescript-http-server-contacts",
+  "description": "bouzuya/w010 2019-W23",
+  "version": "0.0.0",
+  "author": "bouzuya <m@bouzuya.net> (https://bouzuya.net/)",
+  "bugs": {
+    "url": "https://github.com/bouzuya/purescript-http-server-contacts/issues"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "purescript": "^0.13.0",
+    "spago": "^0.8.3"
+  },
+  "homepage": "https://github.com/bouzuya/purescript-http-server-contacts#readme",
+  "keywords": [],
+  "license": "MIT",
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bouzuya/purescript-http-server-contacts.git"
+  },
+  "scripts": {
+    "build": "spago build",
+    "purs": "purs",
+    "repl": "spago repl",
+    "spago": "spago",
+    "test": "spago test"
+  }
+}
