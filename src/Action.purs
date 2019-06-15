@@ -10,8 +10,6 @@ import Bouzuya.HTTP.Response (Response)
 import Bouzuya.HTTP.StatusCode as StatusCode
 import Data.Array as Array
 import Data.Maybe as Maybe
-import Data.String as String
-import Data.Tuple as Tuple
 import Effect.Aff (Aff)
 import NormalizedPath as NormalizedPath
 import ResponseHelper as ResponseHelper
@@ -23,10 +21,7 @@ execute :: AppStore -> Request -> Aff Response
 execute store { method, pathname, body } = do
   let normalized = NormalizedPath.normalize pathname
   if pathname /= NormalizedPath.toString normalized
-    then
-      ResponseHelper.sendStatus
-        StatusCode.status301
-        [ Tuple.Tuple "Location" (NormalizedPath.toString normalized) ]
+    then ResponseHelper.sendStatus301 (NormalizedPath.toString normalized)
     else
       case NormalizedPath.toPieces normalized of
         ["contacts"] ->
@@ -45,24 +40,11 @@ execute store { method, pathname, body } = do
                   let contacts' = Array.insert contact contacts
                   _ <- Store.put contacts' store
                   ResponseHelper.json (SimpleJSON.writeJSON contacts)
-            _ ->
-              ResponseHelper.sendStatus
-                StatusCode.status405
-                [ Tuple.Tuple
-                  "Allow"
-                  (String.joinWith ", " (map show [Method.GET, Method.POST]))
-                ]
+            _ -> ResponseHelper.sendStatus405 [Method.GET, Method.POST]
         [] ->
           case method of
             Method.GET ->
               -- healthcheck
               ResponseHelper.json (SimpleJSON.writeJSON { message: "OK" })
-            _ ->
-              ResponseHelper.sendStatus
-                StatusCode.status405
-                [ Tuple.Tuple
-                  "Allow"
-                  (String.joinWith ", " (map show [Method.GET]))
-                ]
-        _ ->
-          ResponseHelper.sendStatus StatusCode.status404 []
+            _ -> ResponseHelper.sendStatus405 [Method.GET]
+        _ -> ResponseHelper.sendStatus404

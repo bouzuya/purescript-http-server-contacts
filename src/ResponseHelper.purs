@@ -4,15 +4,20 @@ module ResponseHelper
   , json
   , json'
   , sendStatus
+  , sendStatus301
+  , sendStatus404
+  , sendStatus405
   ) where
 
 import Prelude
 
+import Bouzuya.HTTP.Method (Method)
 import Bouzuya.HTTP.Response (Response)
 import Bouzuya.HTTP.StatusCode (StatusCode)
 import Bouzuya.HTTP.StatusCode as StatusCode
 import Data.ArrayBuffer.Typed as TypedArray
 import Data.ArrayBuffer.Types (Uint8Array)
+import Data.String as String
 import Data.Tuple (Tuple)
 import Data.Tuple as Tuple
 import Effect (Effect)
@@ -55,6 +60,19 @@ sendStatus status headers = do
     , headers: headers <> [ Tuple.Tuple "Content-Type" "application/json" ]
     , status
     }
+
+sendStatus301 :: String -> Aff Response
+sendStatus301 location =
+  sendStatus StatusCode.status301 [ Tuple.Tuple "Location" location ]
+
+sendStatus404 :: Aff Response
+sendStatus404 = sendStatus StatusCode.status404 []
+
+sendStatus405 :: Array Method -> Aff Response
+sendStatus405 allow =
+  sendStatus
+    StatusCode.status405
+    [ Tuple.Tuple "Allow" (String.joinWith ", " (map show allow)) ]
 
 -- private
 
