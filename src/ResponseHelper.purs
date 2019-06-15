@@ -28,18 +28,6 @@ import Node.Encoding as Encoding
 import Simple.JSON (class WriteForeign)
 import Simple.JSON as SimpleJSON
 
-fromJSON :: forall a. WriteForeign a => a -> Aff Response
-fromJSON = fromJSON' StatusCode.status200
-
-fromJSON' :: forall a. WriteForeign a => StatusCode -> a -> Aff Response
-fromJSON' status json = do
-  body <- Class.liftEffect (stringToUint8Array (SimpleJSON.writeJSON json))
-  pure
-    { body
-    , headers: [ Tuple.Tuple "Content-Type" "application/json" ]
-    , status
-    }
-
 fromHTML :: String -> Aff Response
 fromHTML = fromHTML' StatusCode.status200
 
@@ -49,6 +37,18 @@ fromHTML' status text = do
   pure
     { body
     , headers: [ Tuple.Tuple "Content-Type" "text/html" ]
+    , status
+    }
+
+fromJSON :: forall a. WriteForeign a => a -> Aff Response
+fromJSON = fromJSON' StatusCode.status200
+
+fromJSON' :: forall a. WriteForeign a => StatusCode -> a -> Aff Response
+fromJSON' status json = do
+  body <- Class.liftEffect (stringToUint8Array (SimpleJSON.writeJSON json))
+  pure
+    { body
+    , headers: [ Tuple.Tuple "Content-Type" "application/json" ]
     , status
     }
 
