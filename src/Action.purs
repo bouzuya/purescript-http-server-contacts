@@ -21,30 +21,29 @@ execute :: AppStore -> Request -> Aff Response
 execute store { method, pathname, body } = do
   let normalized = NormalizedPath.normalize pathname
   if pathname /= NormalizedPath.toString normalized
-    then ResponseHelper.sendStatus301 (NormalizedPath.toString normalized)
+    then ResponseHelper.status301 (NormalizedPath.toString normalized)
     else
       case NormalizedPath.toPieces normalized of
         ["contacts"] ->
           case method of
             Method.GET -> do
               contacts <- Store.get store
-              ResponseHelper.json (SimpleJSON.writeJSON contacts)
+              ResponseHelper.fromJSON contacts
             Method.POST -> do
               case (SimpleJSON.readJSON_ body :: _ Contact) of
                 Maybe.Nothing ->
-                  ResponseHelper.json'
-                    StatusCode.status400
-                    (SimpleJSON.writeJSON { message: "bad request" })
+                  -- TODO: message
+                  ResponseHelper.fromStatus StatusCode.status400 []
                 Maybe.Just contact -> do
                   contacts <- Store.get store
                   let contacts' = Array.insert contact contacts
                   _ <- Store.put contacts' store
-                  ResponseHelper.json (SimpleJSON.writeJSON contacts)
-            _ -> ResponseHelper.sendStatus405 [Method.GET, Method.POST]
+                  ResponseHelper.fromJSON contacts
+            _ -> ResponseHelper.status405 [Method.GET, Method.POST]
         [] ->
           case method of
             Method.GET ->
               -- healthcheck
-              ResponseHelper.json (SimpleJSON.writeJSON { message: "OK" })
-            _ -> ResponseHelper.sendStatus405 [Method.GET]
-        _ -> ResponseHelper.sendStatus404
+              ResponseHelper.fromJSON { message: "OK" }
+            _ -> ResponseHelper.status405 [Method.GET]
+        _ -> ResponseHelper.status404

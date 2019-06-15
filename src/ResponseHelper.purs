@@ -1,12 +1,12 @@
 module ResponseHelper
-  ( html
-  , html'
-  , json
-  , json'
-  , sendStatus
-  , sendStatus301
-  , sendStatus404
-  , sendStatus405
+  ( fromHTML
+  , fromHTML'
+  , fromJSON
+  , fromJSON'
+  , fromStatus
+  , status301
+  , status404
+  , status405
   ) where
 
 import Prelude
@@ -25,25 +25,26 @@ import Effect.Aff (Aff)
 import Effect.Class as Class
 import Node.Buffer as Buffer
 import Node.Encoding as Encoding
+import Simple.JSON (class WriteForeign)
 import Simple.JSON as SimpleJSON
 
-json :: String -> Aff Response
-json = json' StatusCode.status200
+fromJSON :: forall a. WriteForeign a => a -> Aff Response
+fromJSON = fromJSON' StatusCode.status200
 
-json' :: StatusCode -> String -> Aff Response
-json' status text = do
-  body <- Class.liftEffect (stringToUint8Array text)
+fromJSON' :: forall a. WriteForeign a => StatusCode -> a -> Aff Response
+fromJSON' status json = do
+  body <- Class.liftEffect (stringToUint8Array (SimpleJSON.writeJSON json))
   pure
     { body
     , headers: [ Tuple.Tuple "Content-Type" "application/json" ]
     , status
     }
 
-html :: String -> Aff Response
-html = html' StatusCode.status200
+fromHTML :: String -> Aff Response
+fromHTML = fromHTML' StatusCode.status200
 
-html' :: StatusCode -> String -> Aff Response
-html' status text = do
+fromHTML' :: StatusCode -> String -> Aff Response
+fromHTML' status text = do
   body <- Class.liftEffect (stringToUint8Array text)
   pure
     { body
@@ -51,8 +52,8 @@ html' status text = do
     , status
     }
 
-sendStatus :: StatusCode -> Array (Tuple String String) -> Aff Response
-sendStatus status headers = do
+fromStatus :: StatusCode -> Array (Tuple String String) -> Aff Response
+fromStatus status headers = do
   let text = SimpleJSON.writeJSON { message: show status }
   body <- Class.liftEffect (stringToUint8Array text)
   pure
@@ -61,16 +62,16 @@ sendStatus status headers = do
     , status
     }
 
-sendStatus301 :: String -> Aff Response
-sendStatus301 location =
-  sendStatus StatusCode.status301 [ Tuple.Tuple "Location" location ]
+status301 :: String -> Aff Response
+status301 location =
+  fromStatus StatusCode.status301 [ Tuple.Tuple "Location" location ]
 
-sendStatus404 :: Aff Response
-sendStatus404 = sendStatus StatusCode.status404 []
+status404 :: Aff Response
+status404 = fromStatus StatusCode.status404 []
 
-sendStatus405 :: Array Method -> Aff Response
-sendStatus405 allow =
-  sendStatus
+status405 :: Array Method -> Aff Response
+status405 allow =
+  fromStatus
     StatusCode.status405
     [ Tuple.Tuple "Allow" (String.joinWith ", " (map show allow)) ]
 
