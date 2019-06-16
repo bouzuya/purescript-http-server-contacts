@@ -35,4 +35,7 @@ main = Aff.launchAff_ do
   port <- Class.liftEffect (readPort 8080)
   let config = { hostname: "0.0.0.0", port }
   Class.liftEffect
-    (Server.run config (Console.log "listen") (Action.execute store))
+    (Server.run
+      config
+      (Console.log "listen")
+      (\request -> Action.execute { request, store }))
