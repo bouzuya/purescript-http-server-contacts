@@ -22,7 +22,7 @@ middleware :: forall r r'. Middleware (R2 (R1 r)) r'
 middleware
   _
   { normalizedPath
-  , request: { method, pathname, body }
+  , request: { method, body }
   , store
   } = do
   case NormalizedPath.toPieces normalizedPath of

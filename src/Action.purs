@@ -12,7 +12,6 @@ import ResponseHelper as ResponseHelper
 import Type (AppStore, NewHandler, Middleware)
 
 type R1 r = (store :: AppStore | r)
-type R2 r = MiddlewarePathNormalize.R r
 
 execute :: NewHandler (R1 ())
 execute = middleware handler
