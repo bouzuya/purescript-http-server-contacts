@@ -8,6 +8,7 @@ import Bouzuya.HTTP.Method as Method
 import Bouzuya.HTTP.StatusCode as StatusCode
 import Data.Array as Array
 import Data.Maybe as Maybe
+import Middleware.Logging as MiddlewareLogging
 import Middleware.PathNormalize as MiddlewarePathNormalize
 import NormalizedPath as NormalizedPath
 import ResponseHelper as ResponseHelper
@@ -19,7 +20,10 @@ type R1 r = (store :: AppStore | r)
 type R2 r = MiddlewarePathNormalize.R r
 
 execute :: NewHandler (R1 ())
-execute = MiddlewarePathNormalize.middleware execute'
+execute =
+  (MiddlewareLogging.middleware
+    <<< MiddlewarePathNormalize.middleware)
+  execute'
 
 execute' :: NewHandler (R2 (R1 ()))
 execute' { normalizedPath: normalized, request: { method, pathname, body }, store }  = do
