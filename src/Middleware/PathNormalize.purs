@@ -5,10 +5,10 @@ module Middleware.PathNormalize
 
 import Prelude
 
+import Bouzuya.HTTP.Request.NormalizedPath (NormalizedPath)
+import Bouzuya.HTTP.Request.NormalizedPath as NormalizedPath
 import Data.Symbol (SProxy)
 import Data.Symbol as Symbol
-import NormalizedPath (NormalizedPath)
-import NormalizedPath as NormalizedPath
 import Prim.Row (class Lacks)
 import Record as Record
 import ResponseHelper as ResponseHelper

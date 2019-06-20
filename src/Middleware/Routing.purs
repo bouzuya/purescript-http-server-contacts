@@ -5,11 +5,11 @@ module Middleware.Routing
 import Prelude
 
 import Bouzuya.HTTP.Method as Method
+import Bouzuya.HTTP.Request.NormalizedPath as NormalizedPath
 import Bouzuya.HTTP.StatusCode as StatusCode
 import Data.Array as Array
 import Data.Maybe as Maybe
 import Middleware.PathNormalize as MiddlewarePathNormalize
-import NormalizedPath as NormalizedPath
 import ResponseHelper as ResponseHelper
 import Simple.JSON as SimpleJSON
 import Store as Store
