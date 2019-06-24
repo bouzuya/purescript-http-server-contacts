@@ -33,9 +33,10 @@ main :: Effect Unit
 main = Aff.launchAff_ do
   store <- Store.new initialContacts
   port <- Class.liftEffect (readPort 8080)
-  let config = { hostname: "0.0.0.0", port }
+  let config = { host: "0.0.0.0", port }
   Class.liftEffect
     (Server.run
       config
-      (Console.log "listen")
+      (\{ host, port: p } ->
+        Console.log ("listen http://" <> host <> ":" <> show p))
       (\request -> Action.execute { request, store }))

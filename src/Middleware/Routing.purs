@@ -4,11 +4,13 @@ module Middleware.Routing
 
 import Prelude
 
+import Bouzuya.HTTP.Body as Body
 import Bouzuya.HTTP.Method as Method
 import Bouzuya.HTTP.Request.NormalizedPath as NormalizedPath
 import Bouzuya.HTTP.StatusCode as StatusCode
 import Data.Array as Array
 import Data.Maybe as Maybe
+import Effect.Class as Class
 import Middleware.PathNormalize as MiddlewarePathNormalize
 import ResponseHelper as ResponseHelper
 import Simple.JSON as SimpleJSON
@@ -32,7 +34,8 @@ middleware
           contacts <- Store.get store
           ResponseHelper.fromJSON contacts
         Method.POST -> do
-          case (SimpleJSON.readJSON_ body :: _ Contact) of
+          body' <- Class.liftEffect (Body.fromArray body) -- TODO
+          case (SimpleJSON.readJSON_ body' :: _ Contact) of
             Maybe.Nothing ->
               -- TODO: message
               ResponseHelper.fromStatus StatusCode.status400 []
