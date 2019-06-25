@@ -5,10 +5,13 @@ module Middleware.Routing
 import Prelude
 
 import Bouzuya.HTTP.Body as Body
+import Bouzuya.HTTP.Method (Method)
 import Bouzuya.HTTP.Method as Method
+import Bouzuya.HTTP.Request.NormalizedPath (NormalizedPath)
 import Bouzuya.HTTP.Request.NormalizedPath as NormalizedPath
 import Bouzuya.HTTP.StatusCode as StatusCode
 import Data.Array as Array
+import Data.ArrayBuffer.Types (Uint8Array)
 import Data.Maybe as Maybe
 import Effect.Class as Class
 import Middleware.PathNormalize as MiddlewarePathNormalize
@@ -19,6 +22,17 @@ import Type (Contact, Middleware, AppStore)
 
 type R1 r = (store :: AppStore | r)
 type R2 r = MiddlewarePathNormalize.R r
+
+data Action
+  = BadRequest -- invalid body
+  | ContactCreate Contact
+  | ContactList
+  | HealthCheck
+  | MethodNotAllowed (Array Method)
+  | NotFound
+
+route :: NormalizedPath -> Method -> Uint8Array -> Action
+route _ _ _ = NotFound
 
 middleware :: forall r r'. Middleware (R2 (R1 r)) r'
 middleware
