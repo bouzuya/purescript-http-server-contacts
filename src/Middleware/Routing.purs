@@ -11,7 +11,6 @@ import Bouzuya.HTTP.Request.NormalizedPath (NormalizedPath)
 import Bouzuya.HTTP.Request.NormalizedPath as NormalizedPath
 import Bouzuya.HTTP.StatusCode as StatusCode
 import Data.Array as Array
-import Data.ArrayBuffer.Types (Uint8Array)
 import Data.Maybe as Maybe
 import Effect.Class as Class
 import Middleware.PathNormalize as MiddlewarePathNormalize
@@ -24,15 +23,25 @@ type R1 r = (store :: AppStore | r)
 type R2 r = MiddlewarePathNormalize.R r
 
 data Action
-  = BadRequest -- invalid body
-  | ContactCreate Contact
+  = ContactCreate
   | ContactList
   | HealthCheck
   | MethodNotAllowed (Array Method)
   | NotFound
 
-route :: NormalizedPath -> Method -> Uint8Array -> Action
-route _ _ _ = NotFound
+route :: NormalizedPath -> Method -> Action
+route normalizedPath method =
+  case NormalizedPath.toPieces normalizedPath of
+    ["contacts"] ->
+      case method of
+        Method.GET -> ContactList
+        Method.POST -> ContactCreate
+        _ -> MethodNotAllowed [Method.GET, Method.POST]
+    [] ->
+      case method of
+        Method.GET -> HealthCheck
+        _ -> MethodNotAllowed [Method.GET]
+    _ -> NotFound
 
 middleware :: forall r r'. Middleware (R2 (R1 r)) r'
 middleware
@@ -40,27 +49,25 @@ middleware
   { normalizedPath
   , request: { method, body }
   , store
-  } = do
-  case NormalizedPath.toPieces normalizedPath of
-    ["contacts"] ->
-      case method of
-        Method.GET -> do
-          contacts <- Store.get store
-          ResponseHelper.fromJSON contacts
-        Method.POST -> do
-          body' <- Class.liftEffect (Body.fromArray body) -- TODO
-          case (SimpleJSON.readJSON_ body' :: _ Contact) of
-            Maybe.Nothing ->
-              -- TODO: message
-              ResponseHelper.fromStatus StatusCode.status400 []
-            Maybe.Just contact -> do
-              contacts <- Store.get store
-              let contacts' = Array.insert contact contacts
-              _ <- Store.put contacts' store
-              ResponseHelper.fromJSON contacts
-        _ -> ResponseHelper.status405 [Method.GET, Method.POST]
-    [] ->
-      case method of
-        Method.GET -> ResponseHelper.fromStatus StatusCode.status200 []
-        _ -> ResponseHelper.status405 [Method.GET]
-    _ -> ResponseHelper.status404
+  } =
+    case route normalizedPath method of
+      ContactCreate -> do
+        body' <- Class.liftEffect (Body.fromArray body) -- TODO
+        case (SimpleJSON.readJSON_ body' :: _ Contact) of
+          Maybe.Nothing ->
+            -- TODO: message
+            ResponseHelper.fromStatus StatusCode.status400 []
+          Maybe.Just contact -> do
+            contacts <- Store.get store
+            let contacts' = Array.insert contact contacts
+            _ <- Store.put contacts' store
+            ResponseHelper.fromJSON contacts
+      ContactList -> do
+        contacts <- Store.get store
+        ResponseHelper.fromJSON contacts
+      HealthCheck ->
+        ResponseHelper.fromStatus StatusCode.status200 []
+      MethodNotAllowed methods ->
+        ResponseHelper.status405 methods
+      NotFound ->
+        ResponseHelper.status404
