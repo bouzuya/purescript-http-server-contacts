@@ -4,7 +4,7 @@ module Main
 
 import Prelude
 
-import Action as Action
+import App as App
 import Bouzuya.HTTP.Server as Server
 import Control.Bind (bindFlipped)
 import Data.Int as Int
@@ -41,4 +41,4 @@ main = Aff.launchAff_ do
       config
       (\{ host, port: p } ->
         Console.log ("listen http://" <> host <> ":" <> show p))
-      (\request -> Action.execute { request, store }))
+      (\request -> App.execute { request, store }))
