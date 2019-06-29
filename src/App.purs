@@ -14,6 +14,7 @@ import Middleware.Logging as MiddlewareLogging
 import Middleware.PathNormalize as MiddlewarePathNormalize
 import Middleware.Routing as MiddlewareRouting
 import ResponseHelper as ResponseHelper
+import Route as Route
 import Simple.JSON as SimpleJSON
 import Store as Store
 import Type (AppStore, Middleware, NewHandler, Contact)
@@ -51,6 +52,6 @@ handler { action, request: { body }, store } =
 
 middleware :: Middleware (R1 ()) (R2 (R1 ()))
 middleware =
-  (MiddlewareRouting.middleware Action.route)
+  (MiddlewareRouting.middleware Route.route)
   >>> MiddlewareLogging.middleware
   >>> MiddlewarePathNormalize.middleware

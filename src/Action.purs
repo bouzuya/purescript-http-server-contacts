@@ -1,12 +1,11 @@
 module Action
   ( Action(..)
-  , route
   ) where
 
+import Prelude
+
 import Bouzuya.HTTP.Method (Method)
-import Bouzuya.HTTP.Method as Method
-import Bouzuya.HTTP.Request.NormalizedPath (NormalizedPath)
-import Bouzuya.HTTP.Request.NormalizedPath as NormalizedPath
+import Data.String as String
 
 data Action
   = ContactCreate
@@ -15,16 +14,12 @@ data Action
   | MethodNotAllowed (Array Method)
   | NotFound
 
-route :: NormalizedPath -> Method -> Action
-route normalizedPath method =
-  case NormalizedPath.toPieces normalizedPath of
-    ["contacts"] ->
-      case method of
-        Method.GET -> ContactList
-        Method.POST -> ContactCreate
-        _ -> MethodNotAllowed [Method.GET, Method.POST]
-    [] ->
-      case method of
-        Method.GET -> HealthCheck
-        _ -> MethodNotAllowed [Method.GET]
-    _ -> NotFound
+derive instance eqAction :: Eq Action
+instance showAction :: Show Action where
+  show = case _ of
+    ContactCreate -> "ContactCreate"
+    ContactList -> "ContactList"
+    HealthCheck -> "HealthCheck"
+    (MethodNotAllowed methods) ->
+      "MethodNotAllowed " <> (String.joinWith ", " (map show methods))
+    NotFound -> "NotFound "
