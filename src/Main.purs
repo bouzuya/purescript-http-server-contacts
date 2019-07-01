@@ -40,5 +40,5 @@ main = Aff.launchAff_ do
     (Server.run
       config
       (\{ host, port: p } ->
-        Console.log ("listen http://" <> host <> ":" <> show p))
+        Console.log ("listening on http://" <> host <> ":" <> show p))
       (\request -> App.execute { request, store }))
