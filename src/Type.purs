@@ -19,4 +19,4 @@ type Contact =
   , tel :: String
   }
 
-type AppStore = Store (Array Contact)
+type AppStore = Store Contact

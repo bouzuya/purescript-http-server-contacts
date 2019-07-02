@@ -9,6 +9,7 @@ import Bouzuya.HTTP.Server as Server
 import Control.Bind (bindFlipped)
 import Data.Int as Int
 import Data.Maybe as Maybe
+import Data.Traversable as Traversable
 import Effect (Effect)
 import Effect.Aff as Aff
 import Effect.Class as Class
@@ -33,7 +34,12 @@ initialContacts = [
 
 main :: Effect Unit
 main = Aff.launchAff_ do
-  store <- Store.new initialContacts
+  store <- Store.empty
+  _ <-
+    Traversable.sequence
+      (map
+        (\c -> Store.insert store c.name c)
+        initialContacts)
   port <- Class.liftEffect (readPort 8080)
   let config = { host: "0.0.0.0", port }
   Class.liftEffect

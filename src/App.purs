@@ -36,12 +36,10 @@ handler { action, request: { body }, store } =
           -- TODO: message
           ResponseHelper.fromStatus StatusCode.status400 []
         Maybe.Just contact -> do
-          contacts <- Store.get store
-          let contacts' = Array.insert contact contacts
-          _ <- Store.put contacts' store
-          ResponseHelper.fromJSON contacts
+          _ <- Store.insert store contact.name contact
+          ResponseHelper.fromJSON contact
     Action.ContactList -> do
-      contacts <- Store.get store
+      contacts <- Store.list store
       ResponseHelper.fromJSON contacts
     Action.HealthCheck ->
       ResponseHelper.fromStatus StatusCode.status200 []
